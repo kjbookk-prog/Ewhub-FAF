@@ -27,9 +27,9 @@ local Settings = {
     AutoBuyBaitEnabled = false
 }
 
--- DAFTAR NAMA ITEM (Silakan tambah nama lain di dalam tanda petik, pisahkan dengan koma)
-local DaftarGears = {"BasicAutoFeeder", "FoodScoop", "SuprameFoodTray"} 
-local DaftarBaits = {"DeepSea", "Glo", "River"}
+-- DAFTAR NAMA ITEM (Silakan tambah/ubah sesuai nama asli di game)
+local DaftarGears = {"BasicAutoFeeder", "SuprameFoodTray", "FoodScoop"} 
+local DaftarBaits = {"DeepSea", "River}
 
 local FolderName = "AutoHubConfigs"
 if not isfolder(FolderName) then makefolder(FolderName) end
@@ -46,15 +46,6 @@ local function GetSavedConfigs()
     return #configs == 0 and {"Kosong"} or configs
 end
 
--- Remote Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RemoteFolder = ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("remo"):WaitForChild("src"):WaitForChild("container")
-
-local placeBuildingRemote = RemoteFolder:WaitForChild("ponds.placeBuilding")
-local nukeRemote = RemoteFolder:WaitForChild("nuke.feedDrFalloutAll")
-local purchaseGearRemote = RemoteFolder:WaitForChild("shop.purchaseGear")
-local purchaseBaitRemote = RemoteFolder:WaitForChild("shop.purchaseBait")
-
 local PlaceCoordinates = {
     ["1"] = Vector3.new(76.86399841308594, -0.012000083923339844, 368),
     ["2"] = Vector3.new(-143.13600158691406, -0.012000083923339844, 371),
@@ -63,6 +54,11 @@ local PlaceCoordinates = {
     ["5"] = Vector3.new(14.863998413085938, -0.012000083923339844, 23),
     ["6"] = Vector3.new(-144.13600158691406, -0.012000083923339844, -34)
 }
+
+-- Fungsi dinamis untuk mengambil remote agar tidak memblokir script di awal
+local function GetRemoteContainer()
+    return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include", 5):WaitForChild("node_modules", 5):WaitForChild("@rbxts", 5):WaitForChild("remo", 5):WaitForChild("src", 5):WaitForChild("container", 5)
+end
 
 -- ==========================================
 -- TAB 1: AUTO PLACE
@@ -91,7 +87,12 @@ Tab1:CreateToggle({
                 while Settings.AutoPlaceEnabled do
                     local pos = PlaceCoordinates[Settings.SelectedPlace]
                     if pos then
-                        pcall(function() placeBuildingRemote:InvokeServer("booster", "SupremeFoodTray", pos) end)
+                        pcall(function() 
+                            local container = GetRemoteContainer()
+                            if container and container:FindFirstChild("ponds.placeBuilding") then
+                                container["ponds.placeBuilding"]:InvokeServer("booster", "SupremeFoodTray", pos)
+                            end
+                        end)
                     end
                     task.wait(Settings.LoopTime)
                 end
@@ -113,7 +114,12 @@ TabEvent:CreateToggle({
         if Value then
             task.spawn(function()
                 while Settings.FeedDrFalloutEnabled do
-                    pcall(function() nukeRemote:FireServer() end)
+                    pcall(function() 
+                        local container = GetRemoteContainer()
+                        if container and container:FindFirstChild("nuke.feedDrFalloutAll") then
+                            container["nuke.feedDrFalloutAll"]:FireServer() 
+                        end
+                    end)
                     task.wait(Settings.LoopTime)
                 end
             end)
@@ -130,7 +136,7 @@ local GearDropdownUI = TabGear:CreateDropdown({
     Name = "Pilih Gear (Bisa Tumpuk)",
     Options = DaftarGears,
     CurrentOption = {},
-    MultipleOptions = true, -- Memungkinkan pilihan ganda (ditumpuk)
+    MultipleOptions = true,
     Flag = "GearDropdown",
     Callback = function(Options)
         Settings.SelectedGears = Options
@@ -145,8 +151,13 @@ TabGear:CreateToggle({
             task.spawn(function()
                 while Settings.AutoBuyGearEnabled do
                     for _, gearName in ipairs(Settings.SelectedGears) do
-                        pcall(function() purchaseGearRemote:FireServer(gearName) end)
-                        task.wait(0.1) -- Jeda kecil per item agar tidak disconnect
+                        pcall(function() 
+                            local container = GetRemoteContainer()
+                            if container and container:FindFirstChild("shop.purchaseGear") then
+                                container["shop.purchaseGear"]:FireServer(gearName) 
+                            end
+                        end)
+                        task.wait(0.1)
                     end
                     task.wait(Settings.LoopTime)
                 end
@@ -179,7 +190,12 @@ TabBait:CreateToggle({
             task.spawn(function()
                 while Settings.AutoBuyBaitEnabled do
                     for _, baitName in ipairs(Settings.SelectedBaits) do
-                        pcall(function() purchaseBaitRemote:FireServer(baitName) end)
+                        pcall(function() 
+                            local container = GetRemoteContainer()
+                            if container and container:FindFirstChild("shop.purchaseBait") then
+                                container["shop.purchaseBait"]:FireServer(baitName) 
+                            end
+                        end)
                         task.wait(0.1)
                     end
                     task.wait(Settings.LoopTime)
@@ -196,8 +212,6 @@ local TabKonfig = Window:CreateTab("Konfig", 4483362458)
 
 local NewConfigName = ""
 local SelectedDropdownConfig = ""
-
-TabKonfig:CreateParagraph({Title = "Buat Config Baru", Content = "Ketik nama di bawah ini lalu tekan Create."})
 
 TabKonfig:CreateInput({
     Name = "Nama Config Baru", PlaceholderText = "Ketik nama...",
@@ -223,9 +237,6 @@ TabKonfig:CreateButton({
         ConfigDropdown:Refresh(GetSavedConfigs(), true)
     end,
 })
-
-TabKonfig:CreateDivider()
-TabKonfig:CreateParagraph({Title = "Daftar Config Tersimpan", Content = "Pilih lalu Load atau Overwrite."})
 
 local InitialConfigs = GetSavedConfigs()
 ConfigDropdown = TabKonfig:CreateDropdown({
@@ -264,7 +275,6 @@ TabKonfig:CreateButton({
             Settings.SelectedGears = decodedData.SavedGears or {}
             Settings.SelectedBaits = decodedData.SavedBaits or {}
             
-            -- Memperbarui Tampilan UI agar sinkron dengan yang diload
             LoopTimeSlider:Set(Settings.LoopTime)
             HomePlaceDropdown:Set({Settings.SelectedPlace})
             GearDropdownUI:Set(Settings.SelectedGears)
