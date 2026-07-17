@@ -27,9 +27,9 @@ local Settings = {
     AutoBuyBaitEnabled = false
 }
 
--- DAFTAR NAMA ITEM (Silakan tambah/ubah sesuai nama asli di game)
-local DaftarGears = {"BasicAutoFeeder", "SuprameFoodTray", "FoodScoop"} 
-local DaftarBaits = {"DeepSea", "River}
+-- DAFTAR NAMA ITEM 
+local DaftarGears = {"BasicAutoFeeder", "FoodScoop", "BasicFoodTray", "MoveTool", "MagnifyingGlass", "AdvancedFoodTray", "AdvancedAutoFeeder", "XPCookie", "TeleportWand", "StarLock", "SupremeAutoFeeder", "PetToy", "TradingTicket", "EggHatcher", "SupremeAutoFeeder", "PetWhistle", "GoldenCookie", "MutationBeacon", "EggIncubator", "ExtremeAutoFeeder", "StormHorn", "GodlyAutoFeeder"} 
+local DaftarBaits = {"Starter", "Novice", "Reef", "DeepSea", "Koi", "River", "Puffer", "Glo", "Seal", "Ray", "Octopus", "Axolotl", "Jelly", "Whale", "Shark", "Squid", "Megalodon", "Kraken", "Maw", "Bloop", "OceanEater", "Serpent"} -- Tanda kutip "River" sudah diperbaiki
 
 local FolderName = "AutoHubConfigs"
 if not isfolder(FolderName) then makefolder(FolderName) end
