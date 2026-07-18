@@ -32,10 +32,10 @@ local Settings = {
 
 -- DAFTAR NAMA ITEM (Silakan tambah/ubah sesuai game)
 local DaftarGears = {
-    "BasicAutoFeeder", "FoodScoop", "BasicFoodTray", "MoveTool", 
+    "BasicAutoFeeder", "FoodScoop", "BasicFoodTray", "NetMover", 
     "MagnifyingGlass", "AdvancedFoodTray", "AdvancedAutoFeeder", 
-    "XPCookie", "TeleportWand", "StarLock", "SupremeAutoFeeder", 
-    "PetToy", "TradingTicket", "EggHatcher", "PetWhistle", 
+    "XpCookie", "TeleportWand", "StarLock", "SupremeAutoFeeder", 
+    "PetToy", "TradingTicket", "EggHatcher", "SupremeFoodTray", "PetWhistle", 
     "GoldenCookie", "MutationBeacon", "EggIncubator", 
     "ExtremeAutoFeeder", "StormHorn", "GodlyAutoFeeder"
 } 
