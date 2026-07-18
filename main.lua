@@ -24,15 +24,64 @@ local Settings = {
     AutoBuyGearEnabled = false,
     
     SelectedBaits = {},
-    AutoBuyBaitEnabled = false
+    AutoBuyBaitEnabled = false,
+
+    -- Variabel Auto Craft
+    SelectedCraftGear = "TimeJumper",
+    AutoCraftTime = 1,
+    AutoCraftEnabled = false,
+    AutoTakeTime = 1,
+    AutoTakeEnabled = false
 }
 
 -- DAFTAR NAMA ITEM 
-local DaftarGears = {"BasicAutoFeeder", "FoodScoop", "BasicFoodTray", "NetMover", "MagnifyingGlass", "AdvancedFoodTray", "AdvancedAutoFeeder", "XPCookie", "TeleportWand", "StarLock", "SupremeAutoFeeder", "PetToy", "TradingTicket", "EggHatcher", "SupremeFoodTray", "PetWhistle", "GoldenCookie", "MutationBeacon", "EggIncubator", "ExtremeAutoFeeder", "StormHorn", "GodlyAutoFeeder"} 
-local DaftarBaits = {"Starter", "Novice", "Reef", "DeepSea", "Koi", "River", "Puffer", "Glo", "Seal", "Ray", "Octopus", "Axolotl", "Jelly", "Whale", "Shark", "Squid", "Megalodon", "Kraken", "Maw", "Bloop", "OceanEater", "Serpent"} -- Tanda kutip "River" sudah diperbaiki
+local DaftarGears = {
+    "BasicAutoFeeder", "FoodScoop", "BasicFoodTray", "MoveTool", 
+    "MagnifyingGlass", "AdvancedFoodTray", "AdvancedAutoFeeder", 
+    "XPCookie", "TeleportWand", "StarLock", "SupremeAutoFeeder", 
+    "PetToy", "TradingTicket", "EggHatcher", "PetWhistle", 
+    "GoldenCookie", "MutationBeacon", "EggIncubator", 
+    "ExtremeAutoFeeder", "StormHorn", "GodlyAutoFeeder"
+} 
+
+local DaftarBaits = {
+    "Starter", "Novice", "Reef", "DeepSea", "Koi", "River", 
+    "Puffer", "Glo", "Seal", "Ray", "Octopus", "Axolotl", 
+    "Jelly", "Whale", "Shark", "Squid", "Megalodon", 
+    "Kraken", "Maw", "Bloop", "OceanEater", "Serpent"
+}
+
+-- ==========================================
+-- RESEP CRAFTING (MUDAH DITAMBAH)
+-- ==========================================
+-- Kamu bisa menambahkan gear lain beserta bahan-bahannya di bawah ini
+local CraftingRecipes = {
+    ["TimeJumper"] = {
+        "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand", 
+        "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand",
+        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
+        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
+        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
+        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
+        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass",
+        "SupremeAutoFeeder"
+    },
+    -- Contoh cara menambah resep baru:
+    -- ["NamaGearBaru"] = {
+    --     "Bahan1", "Bahan2", "Bahan3"
+    -- }
+}
+
+-- Mengambil nama-nama gear yang ada di CraftingRecipes secara otomatis untuk Dropdown
+local DaftarCrafting = {}
+for gearName, _ in pairs(CraftingRecipes) do
+    table.insert(DaftarCrafting, gearName)
+end
 
 local FolderName = "AutoHubConfigs"
-if not isfolder(FolderName) then makefolder(FolderName) end
+if not isfolder(FolderName) then 
+    makefolder(FolderName) 
+end
 
 -- Fungsi untuk mengambil daftar config yang tersimpan
 local function GetSavedConfigs()
@@ -40,7 +89,9 @@ local function GetSavedConfigs()
     if isfolder(FolderName) then
         for _, file in ipairs(listfiles(FolderName)) do
             local fileName = file:match("([^/\\]+)%.json$")
-            if fileName then table.insert(configs, fileName) end
+            if fileName then 
+                table.insert(configs, fileName) 
+            end
         end
     end
     return #configs == 0 and {"Kosong"} or configs
@@ -66,20 +117,32 @@ end
 local Tab1 = Window:CreateTab("Auto Place", 4483362458) 
 
 local LoopTimeSlider = Tab1:CreateSlider({
-    Name = "Waktu Loop (Semua Fitur)",
-    Range = {0.1, 10}, Increment = 0.1, Suffix = "Detik",
-    CurrentValue = Settings.LoopTime, Flag = "LoopTimeSlider",
-    Callback = function(Value) Settings.LoopTime = Value end,
+    Name = "Waktu Loop (Semua Fitur Utama)",
+    Range = {0.1, 10}, 
+    Increment = 0.1, 
+    Suffix = "Detik",
+    CurrentValue = Settings.LoopTime, 
+    Flag = "LoopTimeSlider",
+    Callback = function(Value) 
+        Settings.LoopTime = Value 
+    end,
 })
 
 local HomePlaceDropdown = Tab1:CreateDropdown({
-    Name = "Home Place", Options = {"1", "2", "3", "4", "5", "6"},
-    CurrentOption = {"1"}, MultipleOptions = false, Flag = "HomePlaceDropdown",
-    Callback = function(Options) Settings.SelectedPlace = Options[1] end,
+    Name = "Home Place", 
+    Options = {"1", "2", "3", "4", "5", "6"},
+    CurrentOption = {"1"}, 
+    MultipleOptions = false, 
+    Flag = "HomePlaceDropdown",
+    Callback = function(Options) 
+        Settings.SelectedPlace = Options[1] 
+    end,
 })
 
 Tab1:CreateToggle({
-    Name = "Mulai Auto Place", CurrentValue = false, Flag = "AutoPlaceToggle",
+    Name = "Mulai Auto Place", 
+    CurrentValue = false, 
+    Flag = "AutoPlaceToggle",
     Callback = function(Value)
         Settings.AutoPlaceEnabled = Value
         if Value then
@@ -108,7 +171,8 @@ local TabEvent = Window:CreateTab("Event", 4483362458)
 
 TabEvent:CreateToggle({
     Name = "Feed DrFallout",
-    CurrentValue = false, Flag = "FeedDrFalloutToggle",
+    CurrentValue = false, 
+    Flag = "FeedDrFalloutToggle",
     Callback = function(Value)
         Settings.FeedDrFalloutEnabled = Value
         if Value then
@@ -144,7 +208,9 @@ local GearDropdownUI = TabGear:CreateDropdown({
 })
 
 TabGear:CreateToggle({
-    Name = "Auto Buy Gear", CurrentValue = false, Flag = "AutoBuyGearToggle",
+    Name = "Auto Buy Gear", 
+    CurrentValue = false, 
+    Flag = "AutoBuyGearToggle",
     Callback = function(Value)
         Settings.AutoBuyGearEnabled = Value
         if Value then
@@ -183,7 +249,9 @@ local BaitDropdownUI = TabBait:CreateDropdown({
 })
 
 TabBait:CreateToggle({
-    Name = "Auto Buy Bait", CurrentValue = false, Flag = "AutoBuyBaitToggle",
+    Name = "Auto Buy Bait", 
+    CurrentValue = false, 
+    Flag = "AutoBuyBaitToggle",
     Callback = function(Value)
         Settings.AutoBuyBaitEnabled = Value
         if Value then
@@ -206,7 +274,115 @@ TabBait:CreateToggle({
 })
 
 -- ==========================================
--- TAB 5: KONFIG
+-- TAB 5: AUTO CRAFT (NEW)
+-- ==========================================
+local TabCraft = Window:CreateTab("Auto Craft", 4483362458)
+
+local CraftGearDropdown = TabCraft:CreateDropdown({
+    Name = "Pilih Gear untuk Craft",
+    Options = #DaftarCrafting > 0 and DaftarCrafting or {"Kosong"},
+    CurrentOption = #DaftarCrafting > 0 and {DaftarCrafting[1]} or {"Kosong"},
+    MultipleOptions = false,
+    Flag = "CraftGearDropdown",
+    Callback = function(Options)
+        Settings.SelectedCraftGear = Options[1]
+        
+        -- Mengeksekusi pemilihan item crafting ke server saat user memilih di dropdown
+        if Settings.SelectedCraftGear and Settings.SelectedCraftGear ~= "Kosong" then
+            pcall(function()
+                local container = GetRemoteContainer()
+                if container and container:FindFirstChild("crafting.selectCraftingItem") then
+                    container["crafting.selectCraftingItem"]:FireServer(Settings.SelectedCraftGear, "gear")
+                end
+            end)
+        end
+    end,
+})
+
+local AutoCraftSlider = TabCraft:CreateSlider({
+    Name = "Waktu Auto Craft Gear",
+    Range = {0.1, 10}, 
+    Increment = 0.1, 
+    Suffix = "Detik",
+    CurrentValue = Settings.AutoCraftTime, 
+    Flag = "AutoCraftSlider",
+    Callback = function(Value) 
+        Settings.AutoCraftTime = Value 
+    end,
+})
+
+TabCraft:CreateToggle({
+    Name = "Mulai Auto Craft Gear", 
+    CurrentValue = false, 
+    Flag = "AutoCraftToggle",
+    Callback = function(Value)
+        Settings.AutoCraftEnabled = Value
+        if Value then
+            task.spawn(function()
+                while Settings.AutoCraftEnabled do
+                    if Settings.SelectedCraftGear and Settings.SelectedCraftGear ~= "Kosong" then
+                        local resep = CraftingRecipes[Settings.SelectedCraftGear]
+                        
+                        pcall(function()
+                            local container = GetRemoteContainer()
+                            if container then
+                                -- Submit Items
+                                if container:FindFirstChild("crafting.submitItems") and resep then
+                                    container["crafting.submitItems"]:FireServer(resep, "gear")
+                                end
+                                task.wait(0.2) -- Jeda kecil agar tidak overlap di server
+                                -- Start Craft
+                                if container:FindFirstChild("crafting.startCraft") then
+                                    container["crafting.startCraft"]:FireServer("gear")
+                                end
+                            end
+                        end)
+                    end
+                    task.wait(Settings.AutoCraftTime)
+                end
+            end)
+        end
+    end,
+})
+
+TabCraft:CreateDivider()
+
+local AutoTakeSlider = TabCraft:CreateSlider({
+    Name = "Waktu Auto Take Gear",
+    Range = {0.1, 10}, 
+    Increment = 0.1, 
+    Suffix = "Detik",
+    CurrentValue = Settings.AutoTakeTime, 
+    Flag = "AutoTakeSlider",
+    Callback = function(Value) 
+        Settings.AutoTakeTime = Value 
+    end,
+})
+
+TabCraft:CreateToggle({
+    Name = "Mulai Auto Take Gear", 
+    CurrentValue = false, 
+    Flag = "AutoTakeToggle",
+    Callback = function(Value)
+        Settings.AutoTakeEnabled = Value
+        if Value then
+            task.spawn(function()
+                while Settings.AutoTakeEnabled do
+                    pcall(function()
+                        local container = GetRemoteContainer()
+                        if container and container:FindFirstChild("crafting.collectCraft") then
+                            container["crafting.collectCraft"]:FireServer("gear")
+                        end
+                    end)
+                    task.wait(Settings.AutoTakeTime)
+                end
+            end)
+        end
+    end,
+})
+
+-- ==========================================
+-- TAB 6: KONFIG
 -- ==========================================
 local TabKonfig = Window:CreateTab("Konfig", 4483362458)
 
@@ -214,9 +390,12 @@ local NewConfigName = ""
 local SelectedDropdownConfig = ""
 
 TabKonfig:CreateInput({
-    Name = "Nama Config Baru", PlaceholderText = "Ketik nama...",
+    Name = "Nama Config Baru", 
+    PlaceholderText = "Ketik nama...",
     RemoveTextAfterFocusLost = false,
-    Callback = function(Text) NewConfigName = Text end,
+    Callback = function(Text) 
+        NewConfigName = Text 
+    end,
 })
 
 local ConfigDropdown
@@ -225,37 +404,56 @@ TabKonfig:CreateButton({
     Name = "Create SC (Buat Baru)",
     Callback = function()
         if NewConfigName == "" or NewConfigName == "Kosong" then return end
+        
         local HttpService = game:GetService("HttpService")
         local dataToSave = {
             SavedLoopTime = Settings.LoopTime,
             SavedPlace = Settings.SelectedPlace,
             SavedGears = Settings.SelectedGears,
-            SavedBaits = Settings.SelectedBaits
+            SavedBaits = Settings.SelectedBaits,
+            
+            -- Menyimpan opsi Auto Craft
+            SavedCraftGear = Settings.SelectedCraftGear,
+            SavedAutoCraftTime = Settings.AutoCraftTime,
+            SavedAutoTakeTime = Settings.AutoTakeTime
         }
+        
         writefile(FolderName .. "/" .. NewConfigName .. ".json", HttpService:JSONEncode(dataToSave))
         Rayfield:Notify({Title = "Berhasil!", Content = "Config dibuat.", Duration = 3})
+        
         ConfigDropdown:Refresh(GetSavedConfigs(), true)
     end,
 })
 
 local InitialConfigs = GetSavedConfigs()
 ConfigDropdown = TabKonfig:CreateDropdown({
-    Name = "Pilih Config", Options = InitialConfigs,
-    CurrentOption = {InitialConfigs[1]}, MultipleOptions = false, Flag = "SavedConfigs",
-    Callback = function(Options) SelectedDropdownConfig = Options[1] end,
+    Name = "Pilih Config", 
+    Options = InitialConfigs,
+    CurrentOption = {InitialConfigs[1]}, 
+    MultipleOptions = false, 
+    Flag = "SavedConfigs",
+    Callback = function(Options) 
+        SelectedDropdownConfig = Options[1] 
+    end,
 })
 
 TabKonfig:CreateButton({
     Name = "Overwrite Terpilih",
     Callback = function()
         if SelectedDropdownConfig == "" or SelectedDropdownConfig == "Kosong" then return end
+        
         local HttpService = game:GetService("HttpService")
         local dataToSave = {
             SavedLoopTime = Settings.LoopTime,
             SavedPlace = Settings.SelectedPlace,
             SavedGears = Settings.SelectedGears,
-            SavedBaits = Settings.SelectedBaits
+            SavedBaits = Settings.SelectedBaits,
+            
+            SavedCraftGear = Settings.SelectedCraftGear,
+            SavedAutoCraftTime = Settings.AutoCraftTime,
+            SavedAutoTakeTime = Settings.AutoTakeTime
         }
+        
         writefile(FolderName .. "/" .. SelectedDropdownConfig .. ".json", HttpService:JSONEncode(dataToSave))
         Rayfield:Notify({Title = "Overwritten!", Content = "Config diperbarui.", Duration = 3})
     end,
@@ -265,8 +463,8 @@ TabKonfig:CreateButton({
     Name = "Muat (Load) Terpilih",
     Callback = function()
         if SelectedDropdownConfig == "" or SelectedDropdownConfig == "Kosong" then return end
-        local filePath = FolderName .. "/" .. SelectedDropdownConfig .. ".json"
         
+        local filePath = FolderName .. "/" .. SelectedDropdownConfig .. ".json"
         if isfile(filePath) then
             local decodedData = game:GetService("HttpService"):JSONDecode(readfile(filePath))
             
@@ -275,10 +473,19 @@ TabKonfig:CreateButton({
             Settings.SelectedGears = decodedData.SavedGears or {}
             Settings.SelectedBaits = decodedData.SavedBaits or {}
             
+            Settings.SelectedCraftGear = decodedData.SavedCraftGear or "TimeJumper"
+            Settings.AutoCraftTime = decodedData.SavedAutoCraftTime or 1
+            Settings.AutoTakeTime = decodedData.SavedAutoTakeTime or 1
+            
+            -- Update UI
             LoopTimeSlider:Set(Settings.LoopTime)
             HomePlaceDropdown:Set({Settings.SelectedPlace})
             GearDropdownUI:Set(Settings.SelectedGears)
             BaitDropdownUI:Set(Settings.SelectedBaits)
+            
+            CraftGearDropdown:Set({Settings.SelectedCraftGear})
+            AutoCraftSlider:Set(Settings.AutoCraftTime)
+            AutoTakeSlider:Set(Settings.AutoTakeTime)
             
             Rayfield:Notify({Title = "Berhasil Dimuat!", Content = "Config digunakan.", Duration = 3})
         end
