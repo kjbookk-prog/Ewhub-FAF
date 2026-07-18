@@ -26,12 +26,11 @@ local Settings = {
     SelectedBaits = {},
     AutoBuyBaitEnabled = false,
 
-    -- Variabel Craft
-    SelectedCraftGear = "TimeJumper",
-    AutoCraftEnabled = false
+    SelectedEggs = {},
+    AutoBuyEggEnabled = false
 }
 
--- DAFTAR NAMA ITEM 
+-- DAFTAR NAMA ITEM (Silakan tambah/ubah sesuai game)
 local DaftarGears = {
     "BasicAutoFeeder", "FoodScoop", "BasicFoodTray", "MoveTool", 
     "MagnifyingGlass", "AdvancedFoodTray", "AdvancedAutoFeeder", 
@@ -48,37 +47,9 @@ local DaftarBaits = {
     "Kraken", "Maw", "Bloop", "OceanEater", "Serpent"
 }
 
--- ==========================================
--- PENGATURAN CRAFTING (RESEP & WAKTU)
--- ==========================================
--- 1. Tabel Resep Bahan
-local CraftingRecipes = {
-    ["TimeJumper"] = {
-        "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand", 
-        "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand", "TeleportWand",
-        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
-        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
-        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
-        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", 
-        "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass", "MagnifyingGlass",
-        "SupremeAutoFeeder"
-    },
-    -- Contoh Tambah Resep:
-    -- ["NamaGearLain"] = {"Bahan1", "Bahan2"}
+local DaftarEggs = {
+    "Starter", "Basic", "Forest", "Polar", "Tropical", "Exotic" -- Silakan ditambah lagi di sini
 }
-
--- 2. Tabel Waktu Tunggu Crafting (Dalam Detik)
-local CraftingTimes = {
-    ["TimeJumper"] = 180, -- Ubah 180 menjadi waktu asli TimeJumper (contoh 180 = 3 menit)
-    
-    -- Contoh Tambah Waktu:
-    -- ["NamaGearLain"] = 60,
-}
-
-local DaftarCrafting = {}
-for gearName, _ in pairs(CraftingRecipes) do
-    table.insert(DaftarCrafting, gearName)
-end
 
 local FolderName = "AutoHubConfigs"
 if not isfolder(FolderName) then makefolder(FolderName) end
@@ -243,82 +214,33 @@ TabBait:CreateToggle({
 })
 
 -- ==========================================
--- TAB 5: FULL AUTO CRAFT (CLEAN UI)
+-- TAB 5: EGG SHOP
 -- ==========================================
-local TabCraft = Window:CreateTab("Auto Craft", 4483362458)
+local TabEgg = Window:CreateTab("Egg Shop", 4483362458)
 
-TabCraft:CreateParagraph({
-    Title = "Sistem Auto Craft",
-    Content = "Waktu tunggu (crafting time) sudah diatur otomatis di dalam script. Kamu hanya perlu memilih gear dan menyalakan toggle."
+local EggDropdownUI = TabEgg:CreateDropdown({
+    Name = "Pilih Egg (Bisa Tumpuk)", Options = DaftarEggs,
+    CurrentOption = {}, MultipleOptions = true, Flag = "EggDropdown",
+    Callback = function(Options) Settings.SelectedEggs = Options end,
 })
 
-local CraftGearDropdown = TabCraft:CreateDropdown({
-    Name = "Pilih Gear",
-    Options = #DaftarCrafting > 0 and DaftarCrafting or {"Kosong"},
-    CurrentOption = #DaftarCrafting > 0 and {DaftarCrafting[1]} or {"Kosong"},
-    MultipleOptions = false,
-    Flag = "CraftGearDropdown",
-    Callback = function(Options)
-        Settings.SelectedCraftGear = Options[1]
-    end,
-})
-
-TabCraft:CreateToggle({
-    Name = "Mulai Auto Craft", 
-    CurrentValue = false, 
-    Flag = "FullAutoCraftToggle",
+TabEgg:CreateToggle({
+    Name = "Auto Buy Egg", CurrentValue = false, Flag = "AutoBuyEggToggle",
     Callback = function(Value)
-        Settings.AutoCraftEnabled = Value
+        Settings.AutoBuyEggEnabled = Value
         if Value then
             task.spawn(function()
-                while Settings.AutoCraftEnabled do
-                    if Settings.SelectedCraftGear and Settings.SelectedCraftGear ~= "Kosong" then
-                        local resep = CraftingRecipes[Settings.SelectedCraftGear]
-                        
-                        -- Mengambil waktu dari tabel raw, jika tidak ditemukan default ke 10 detik
-                        local waktuTunggu = CraftingTimes[Settings.SelectedCraftGear] or 10 
-                        
-                        local container = GetRemoteContainer()
-
-                        if container and resep then
-                            -- Step 1: Mulai Sesi
-                            pcall(function()
-                                if container:FindFirstChild("crafting.selectCraftingItem") then
-                                    container["crafting.selectCraftingItem"]:FireServer(Settings.SelectedCraftGear, "gear")
-                                end
-                            end)
-                            task.wait(0.5)
-
-                            -- Step 2: Masukkan Bahan
-                            pcall(function()
-                                if container:FindFirstChild("crafting.submitItems") then
-                                    container["crafting.submitItems"]:FireServer(resep, "gear")
-                                end
-                            end)
-                            task.wait(0.5)
-
-                            -- Step 3: Mulai Buat (Start Craft)
-                            pcall(function()
-                                if container:FindFirstChild("crafting.startCraft") then
-                                    container["crafting.startCraft"]:FireServer("gear")
-                                end
-                            end)
-                            
-                            -- MENGHITUNG MUNDUR WAKTU CRAFTING SETELAH STEP 3
-                            task.wait(waktuTunggu)
-
-                            -- Step 4: Ambil Hasilnya (Collect)
-                            pcall(function()
-                                if container:FindFirstChild("crafting.collectCraft") then
-                                    container["crafting.collectCraft"]:FireServer("gear")
-                                end
-                            end)
-                            
-                            task.wait(1.5)
-                        end
-                    else
-                        task.wait(1)
+                while Settings.AutoBuyEggEnabled do
+                    for _, eggName in ipairs(Settings.SelectedEggs) do
+                        pcall(function() 
+                            local container = GetRemoteContainer()
+                            if container and container:FindFirstChild("shop.purchaseEgg") then
+                                container["shop.purchaseEgg"]:FireServer(eggName) 
+                            end
+                        end)
+                        task.wait(0.1)
                     end
+                    task.wait(Settings.LoopTime)
                 end
             end)
         end
@@ -351,7 +273,7 @@ TabKonfig:CreateButton({
             SavedPlace = Settings.SelectedPlace,
             SavedGears = Settings.SelectedGears,
             SavedBaits = Settings.SelectedBaits,
-            SavedCraftGear = Settings.SelectedCraftGear
+            SavedEggs = Settings.SelectedEggs
         }
         writefile(FolderName .. "/" .. NewConfigName .. ".json", HttpService:JSONEncode(dataToSave))
         Rayfield:Notify({Title = "Berhasil!", Content = "Config dibuat.", Duration = 3})
@@ -376,7 +298,7 @@ TabKonfig:CreateButton({
             SavedPlace = Settings.SelectedPlace,
             SavedGears = Settings.SelectedGears,
             SavedBaits = Settings.SelectedBaits,
-            SavedCraftGear = Settings.SelectedCraftGear
+            SavedEggs = Settings.SelectedEggs
         }
         writefile(FolderName .. "/" .. SelectedDropdownConfig .. ".json", HttpService:JSONEncode(dataToSave))
         Rayfield:Notify({Title = "Overwritten!", Content = "Config diperbarui.", Duration = 3})
@@ -395,13 +317,13 @@ TabKonfig:CreateButton({
             Settings.SelectedPlace = decodedData.SavedPlace or "1"
             Settings.SelectedGears = decodedData.SavedGears or {}
             Settings.SelectedBaits = decodedData.SavedBaits or {}
-            Settings.SelectedCraftGear = decodedData.SavedCraftGear or "TimeJumper"
+            Settings.SelectedEggs = decodedData.SavedEggs or {}
             
             LoopTimeSlider:Set(Settings.LoopTime)
             HomePlaceDropdown:Set({Settings.SelectedPlace})
             GearDropdownUI:Set(Settings.SelectedGears)
             BaitDropdownUI:Set(Settings.SelectedBaits)
-            CraftGearDropdown:Set({Settings.SelectedCraftGear})
+            EggDropdownUI:Set(Settings.SelectedEggs)
             
             Rayfield:Notify({Title = "Berhasil Dimuat!", Content = "Config digunakan.", Duration = 3})
         end
