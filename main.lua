@@ -145,6 +145,26 @@ TabEvent:CreateToggle({
     end,
 })
 
+TabEvent:CreateToggle({
+    Name = "Feed General", CurrentValue = false, Flag = "FeedGeneralToggle",
+    Callback = function(Value)
+        Settings.FeedGeneralEnabled = Value
+        if Value then
+            task.spawn(function()
+                while Settings.FeedGeneralEnabled do
+                    pcall(function() 
+                        local container = GetRemoteContainer()
+                        if container and container:FindFirstChild("nuke.feedGeneralChadAll") then
+                            container["nuke.feedGeneralChadAll"]:FireServer() 
+                        end
+                    end)
+                    task.wait(Settings.LoopTime)
+                end
+            end)
+        end
+    end,
+})
+
 -- ==========================================
 -- TAB 3: GEAR SHOP
 -- ==========================================
