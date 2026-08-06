@@ -35,6 +35,10 @@ local GameRegistry = {
     },
     -- Contoh penambahan game lain:
     -- [UNIVERSE_ID_DISINI] = { Name = "Nama Game", Enabled = true, ScriptUrl = "URL" },
+    [10144280947] = {
+        Name = "+1 Speed Monkey
+        Enabled = true
+        ScriptUrl = 
 }
 
 -- Deteksi Executor yang Digunakan Secara Otomatis
