@@ -38,7 +38,7 @@ local GameRegistry = {
     [10144280947] = {
         Name = "+1 Speed Monkey
         Enabled = true
-        ScriptUrl = 
+        ScriptUrl = "https://raw.githubusercontent.com/kjbookk-prog/Ewehub-FAF/refs/heads/main/monkey.lua"
 }
 
 -- Deteksi Executor yang Digunakan Secara Otomatis
